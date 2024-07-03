@@ -10,6 +10,7 @@ const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
 const OPENAI_API_MODEL: string = core.getInput("OPENAI_API_MODEL");
 
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
+const octokit2 = new Octokit({ auth: GITHUB_TOKEN });
 
 const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
