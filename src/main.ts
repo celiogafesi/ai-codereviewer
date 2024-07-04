@@ -10,8 +10,6 @@ const OPENAI_API_KEY: string = core.getInput("OPENAI_API_KEY");
 const OPENAI_API_MODEL: string = core.getInput("OPENAI_API_MODEL");
 
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
-const octokit2 = new Octokit({ auth: GITHUB_TOKEN });
-
 const openai = new OpenAI({
   apiKey: OPENAI_API_KEY,
 });
@@ -53,7 +51,6 @@ async function getDiff(
     pull_number,
     mediaType: { format: "diff" },
   });
-  // @ts-expect-error - response.data is a string
   return response.data;
 }
 
@@ -64,7 +61,7 @@ async function analyzeCode(
   const comments: Array<{ body: string; path: string; line: number }> = [];
 
   for (const file of parsedDiff) {
-    if (file.to === "/dev/null") continue; // Ignore deleted files
+    if (file.to === "/dev/null") continue;
     for (const chunk of file.chunks) {
       const prompt = createPrompt(file, chunk, prDetails);
       const aiResponse = await getAIResponse(prompt);
@@ -88,10 +85,8 @@ function createPrompt(file: File, chunk: Chunk, prDetails: PRDetails): string {
 - Use the given description only for the overall context and only comment the code.
 - IMPORTANT: NEVER suggest adding comments to the code.
 
-Review the following code diff in the file "${
-    file.to
-  }" and take the pull request title and description into account when writing the response.
-  
+Review the following code diff in the file "${file.to}" and take the pull request title and description into account when writing the response.
+
 Pull request title: ${prDetails.title}
 Pull request description:
 
@@ -103,10 +98,7 @@ Git diff to review:
 
 \`\`\`diff
 ${chunk.content}
-${chunk.changes
-  // @ts-expect-error - ln and ln2 exists where needed
-  .map((c) => `${c.ln ? c.ln : c.ln2} ${c.content}`)
-  .join("\n")}
+${chunk.changes.map((c) => `${c.ln ? c.ln : c.ln2} ${c.content}`).join("\n")}
 \`\`\`
 `;
 }
@@ -155,16 +147,11 @@ function createComment(
     reviewComment: string;
   }>
 ): Array<{ body: string; path: string; line: number }> {
-  return aiResponses.flatMap((aiResponse) => {
-    if (!file.to) {
-      return [];
-    }
-    return {
-      body: aiResponse.reviewComment,
-      path: file.to,
-      line: Number(aiResponse.lineNumber),
-    };
-  });
+  return aiResponses.map((aiResponse) => ({
+    body: aiResponse.reviewComment,
+    path: file.to,
+    line: Number(aiResponse.lineNumber),
+  }));
 }
 
 async function createReviewComment(
@@ -221,26 +208,12 @@ async function main() {
   }
 
   const parsedDiff = parseDiff(diff);
-
-  const excludePatterns = core
-    .getInput("exclude")
-    .split(",")
-    .map((s) => s.trim());
-
-  const filteredDiff = parsedDiff.filter((file) => {
-    return !excludePatterns.some((pattern) =>
-      minimatch(file.to ?? "", pattern)
-    );
-  });
+  const excludePatterns = core.getInput("exclude").split(",").map((s) => s.trim());
+  const filteredDiff = parsedDiff.filter((file) => !excludePatterns.some((pattern) => minimatch(file.to ?? "", pattern)));
 
   const comments = await analyzeCode(filteredDiff, prDetails);
   if (comments.length > 0) {
-    await createReviewComment(
-      prDetails.owner,
-      prDetails.repo,
-      prDetails.pull_number,
-      comments
-    );
+    await createReviewComment(prDetails.owner, prDetails.repo, prDetails.pull_number, comments);
   }
 }
 
