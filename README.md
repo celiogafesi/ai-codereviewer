@@ -16,7 +16,7 @@ review process.
 1. To use this GitHub Action, you need an OpenAI API key. If you don't have one, sign up for an API key
    at [OpenAI](https://beta.openai.com/signup).
 
-2. Add the OpenAI API key as a GitHub Secret in your repository with the name `OPENAI_API_KEY`. You can find more
+2. Add the OpenAI API key as a GitHub Secret in your repository with the name `API_KEY`. You can find more
    information about GitHub Secrets [here](https://docs.github.com/en/actions/reference/encrypted-secrets).
 
 3. Create a `.github/workflows/main.yml` file in your repository and add the following content:
@@ -41,8 +41,9 @@ jobs:
         uses: your-username/ai-code-reviewer@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # The GITHUB_TOKEN is there by default so you just need to keep it like it is and not necessarily need to add it as secret as it will throw an error. [More Details](https://docs.github.com/en/actions/security-guides/automatic-token-authentication#about-the-github_token-secret)
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_API_MODEL: "gpt-4" # Optional: defaults to "gpt-4"
+          PROVIDER: "amazon-bedrock"
+          API_KEY: ${{ secrets.OPEN_API_KEY }}
+          API_MODEL: "gpt-4" # Optional: defaults to "gpt-4"
           exclude: "**/*.json, **/*.md" # Optional: exclude patterns separated by commas
 ```
 

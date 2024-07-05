@@ -9,20 +9,81 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AIProviderFactory = void 0;
 const OpenAIProvider_1 = __nccwpck_require__(9532);
-// import { AmazonBedrockProvider } from "./AmazonBedrockProvider"; // Example for future use
+const AmazonBedrockProvider_1 = __nccwpck_require__(1348);
 class AIProviderFactory {
     static createProvider(providerType, apiKey, model) {
         switch (providerType.toLowerCase()) {
             case "open-ai":
                 return new OpenAIProvider_1.OpenAIProvider(apiKey, model);
-            // case "amazon-bedrock":
-            //   return new AmazonBedrockProvider(apiKey, model);
+            case "amazon-bedrock":
+                return new AmazonBedrockProvider_1.AmazonBedrockProvider(apiKey, model);
             default:
                 throw new Error(`Unsupported AI provider type: ${providerType}`);
         }
     }
 }
 exports.AIProviderFactory = AIProviderFactory;
+
+
+/***/ }),
+
+/***/ 1348:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AmazonBedrockProvider = void 0;
+const openai_1 = __importDefault(__nccwpck_require__(47));
+class AmazonBedrockProvider {
+    constructor(apiKey, model) {
+        this.openai = new openai_1.default({ apiKey });
+        this.model = model;
+    }
+    getAIResponse(prompt) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a, _b;
+            const queryConfig = {
+                model: this.model,
+                temperature: 0.2,
+                max_tokens: 700,
+                top_p: 1,
+                frequency_penalty: 0,
+                presence_penalty: 0,
+            };
+            try {
+                const response = yield this.openai.chat.completions.create(Object.assign(Object.assign(Object.assign({}, queryConfig), (this.model === "gpt-4-1106-preview"
+                    ? { response_format: { type: "json_object" } }
+                    : {})), { messages: [
+                        {
+                            role: "system",
+                            content: prompt,
+                        },
+                    ] }));
+                const res = ((_b = (_a = response.choices[0].message) === null || _a === void 0 ? void 0 : _a.content) === null || _b === void 0 ? void 0 : _b.trim()) || "{}";
+                console.log(res);
+                return JSON.parse(res).reviews;
+            }
+            catch (error) {
+                console.error("Error:", error);
+                return null;
+            }
+        });
+    }
+}
+exports.AmazonBedrockProvider = AmazonBedrockProvider;
 
 
 /***/ }),
@@ -215,10 +276,10 @@ function main() {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         const GITHUB_TOKEN = core.getInput("GITHUB_TOKEN");
-        const OPENAI_API_KEY = core.getInput("OPENAI_API_KEY");
-        const OPENAI_API_MODEL = core.getInput("OPENAI_API_MODEL");
+        const API_KEY = core.getInput("API_KEY");
+        const API_MODEL = core.getInput("API_MODEL");
         const githubService = new GitHubService_1.GitHubService(GITHUB_TOKEN);
-        const aiProvider = AIProviderFactory_1.AIProviderFactory.createProvider("open-ai", OPENAI_API_KEY, "gpt-4-1106-preview");
+        const aiProvider = AIProviderFactory_1.AIProviderFactory.createProvider("open-ai", API_KEY, "gpt-4-1106-preview");
         try {
             const prDetails = yield githubService.getPRDetails();
             let diff;
