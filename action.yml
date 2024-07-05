@@ -4,10 +4,10 @@ inputs:
   GITHUB_TOKEN:
     description: "GitHub token to interact with the repository."
     required: true
-  OPENAI_API_KEY:
+  API_KEY:
     description: "OpenAI API key for GPT."
     required: true
-  OPENAI_API_MODEL:
+  API_MODEL:
     description: "OpenAI API model."
     required: false
     default: "gpt-4"
