@@ -9,9 +9,17 @@ require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AIProviderFactory = void 0;
 const OpenAIProvider_1 = __nccwpck_require__(9532);
+// import { AmazonBedrockProvider } from "./AmazonBedrockProvider"; // Example for future use
 class AIProviderFactory {
-    static createProvider(apiKey, model) {
-        return new OpenAIProvider_1.OpenAIProvider(apiKey, model);
+    static createProvider(providerType, apiKey, model) {
+        switch (providerType.toLowerCase()) {
+            case "open-ai":
+                return new OpenAIProvider_1.OpenAIProvider(apiKey, model);
+            // case "amazon-bedrock":
+            //   return new AmazonBedrockProvider(apiKey, model);
+            default:
+                throw new Error(`Unsupported AI provider type: ${providerType}`);
+        }
     }
 }
 exports.AIProviderFactory = AIProviderFactory;
@@ -210,7 +218,7 @@ function main() {
         const OPENAI_API_KEY = core.getInput("OPENAI_API_KEY");
         const OPENAI_API_MODEL = core.getInput("OPENAI_API_MODEL");
         const githubService = new GitHubService_1.GitHubService(GITHUB_TOKEN);
-        const aiProvider = AIProviderFactory_1.AIProviderFactory.createProvider(OPENAI_API_KEY, "gpt-4-1106-preview");
+        const aiProvider = AIProviderFactory_1.AIProviderFactory.createProvider("open-ai", OPENAI_API_KEY, "gpt-4-1106-preview");
         try {
             const prDetails = yield githubService.getPRDetails();
             let diff;

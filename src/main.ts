@@ -12,7 +12,7 @@ async function main() {
   const OPENAI_API_MODEL: string = core.getInput("OPENAI_API_MODEL");
 
   const githubService = new GitHubService(GITHUB_TOKEN);
-  const aiProvider = AIProviderFactory.createProvider(OPENAI_API_KEY, "gpt-4-1106-preview");
+  const aiProvider = AIProviderFactory.createProvider("open-ai", OPENAI_API_KEY, "gpt-4-1106-preview");
 
   try {
     const prDetails = await githubService.getPRDetails();
