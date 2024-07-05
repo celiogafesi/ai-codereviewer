@@ -23,6 +23,10 @@ export class OpenAIProvider implements AIProvider {
     try {
       const response = await this.openai.chat.completions.create({
         ...queryConfig,
+        // return JSON if the model supports it:
+        ...(this.model === "gpt-4-1106-preview"
+          ? { response_format: { type: "json_object" } }
+          : {}),
         messages: [
           {
             role: "system",
@@ -32,6 +36,7 @@ export class OpenAIProvider implements AIProvider {
       });
 
       const res = response.choices[0].message?.content?.trim() || "{}";
+      console.log(res);
       return JSON.parse(res).reviews;
     } catch (error) {
       console.error("Error:", error);

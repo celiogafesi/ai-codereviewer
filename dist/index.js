@@ -56,13 +56,16 @@ class OpenAIProvider {
                 presence_penalty: 0,
             };
             try {
-                const response = yield this.openai.chat.completions.create(Object.assign(Object.assign({}, queryConfig), { messages: [
+                const response = yield this.openai.chat.completions.create(Object.assign(Object.assign(Object.assign({}, queryConfig), (this.model === "gpt-4-1106-preview"
+                    ? { response_format: { type: "json_object" } }
+                    : {})), { messages: [
                         {
                             role: "system",
                             content: prompt,
                         },
                     ] }));
                 const res = ((_b = (_a = response.choices[0].message) === null || _a === void 0 ? void 0 : _a.content) === null || _b === void 0 ? void 0 : _b.trim()) || "{}";
+                console.log(res);
                 return JSON.parse(res).reviews;
             }
             catch (error) {
@@ -207,7 +210,7 @@ function main() {
         const OPENAI_API_KEY = core.getInput("OPENAI_API_KEY");
         const OPENAI_API_MODEL = core.getInput("OPENAI_API_MODEL");
         const githubService = new GitHubService_1.GitHubService(GITHUB_TOKEN);
-        const aiProvider = AIProviderFactory_1.AIProviderFactory.createProvider(OPENAI_API_KEY, OPENAI_API_MODEL);
+        const aiProvider = AIProviderFactory_1.AIProviderFactory.createProvider(OPENAI_API_KEY, "gpt-4-1106-preview");
         try {
             const prDetails = yield githubService.getPRDetails();
             let diff;
